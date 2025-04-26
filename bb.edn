@@ -1,0 +1,4 @@
+{:min-bb-version "1.12.199"
+ :paths ["patterns"]
+ :tasks {ls {:doc "List known patterns"
+             :task patterns/ls}}}
