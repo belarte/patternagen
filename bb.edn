@@ -1,4 +1,7 @@
 {:min-bb-version "1.12.199"
  :paths ["patterns"]
  :tasks {ls {:doc "List known patterns"
-             :task patterns/ls}}}
+             :task patterns/ls}
+         demo {:doc "Render the basic.ly file with LilyPond and open the resulting PDF"
+               :task (do (shell "lilypond -o samples/basic samples/basic.ly")
+                         (shell "open samples/basic.pdf"))}}}
