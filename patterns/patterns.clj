@@ -1,5 +1,6 @@
 (ns patterns
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [babashka.process :refer [process shell]]))
 
 (def patterns [{:pattern "RllK"}
                {:pattern "RLKK"}])
@@ -62,8 +63,14 @@
   }
 }")
 
+(defn lilypond [file-path]
+  (let [cmd (process ["lilypond" "-o" "bin/output" file-path] {:inherit true})]
+    @cmd))
+
 (defn generate [& args]
-  (spit "bin/test.ly" (str file-top (patterns-to-strokes (first args)) file-bottom)))
+  (spit "bin/output.ly" (str file-top (patterns-to-strokes (first args)) file-bottom))
+  (lilypond "bin/output.ly")
+  (shell "open" "bin/output.pdf"))
 
 (comment
   (ls)
