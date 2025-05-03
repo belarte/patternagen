@@ -1,6 +1,7 @@
 (ns patterns
   (:require [clojure.string :as str]
-            [babashka.process :refer [process shell]]))
+            [babashka.process :refer [process shell]]
+            [babashka.cli :as cli]))
 
 (def patterns [{:pattern "RllK"}
                {:pattern "RLKK"}])
@@ -67,11 +68,19 @@
   (let [cmd (process ["lilypond" "-o" "bin/output" file-path] {:inherit true})]
     @cmd))
 
-(defn generate [& args]
-  (spit "bin/output.ly" (str file-top (patterns-to-strokes (first args)) file-bottom))
+(def generate-spec
+  {:preview {:desc "Open PDF output" :coerce boolean}})
+
+(defn parse-generate-cli [args]
+  (let [parsed (cli/parse-args args {:spec generate-spec})]
+    (assoc (:opts parsed) :patterns (first (:args parsed)))))
+
+(defn generate [{:keys [patterns preview]}]
+  (spit "bin/output.ly" (str file-top (patterns-to-strokes patterns) file-bottom))
   (lilypond "bin/output.ly")
-  (shell "open" "bin/output.pdf"))
+  (when preview
+    (shell "open" "bin/output.pdf")))
 
 (comment
   (ls)
-  (generate "RllK,RllK,RLKK,RLKK"))
+  (generate {:patterns "RllK,RllK,RLKK,RLKK"}))

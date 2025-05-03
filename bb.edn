@@ -2,8 +2,9 @@
  :paths ["patterns"]
  :tasks {ls   {:doc  "List known patterns"
                :task patterns/ls}
-         gen  {:doc  "Generate the music sheet from the input patterns"
-               :task patterns/generate}
+         gen  {:doc      "Generate the music sheet from the input patterns"
+               :requires ([patterns :as p])
+               :task     (p/generate (p/parse-generate-cli *command-line-args*))}
          demo {:doc  "Render the basic.ly file with LilyPond and open the resulting PDF"
                :task (do (shell "lilypond -o samples/basic samples/basic.ly")
                          (shell "open samples/basic.pdf"))}}}
