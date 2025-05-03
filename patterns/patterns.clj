@@ -10,12 +10,15 @@
 (defn valid-patterns? [patterns]
   (every? valid-pattern? patterns))
 
-(def strokes {\R "sn16^\"R\"^\">\""
-              \L "sn16^\"L\"^\">\""
-              \l (str "\\once \\override Stem.font-size = -3\n"
-                      "\\once \\override NoteHead.font-size = -3\n"
-                      "\\parenthesize sn16^\"l\"")
-              \K "bd16^\"K\""})
+(defn indent [line]
+  (str (apply str (repeat 10 " ")) line))
+
+(def strokes {\R (indent "sn16^\"R\"^\">\"")
+              \L (indent "sn16^\"L\"^\">\"")
+              \l (str (indent "\\once \\override Stem.font-size = -3\n")
+                      (indent "\\once \\override NoteHead.font-size = -3\n")
+                      (indent "\\parenthesize sn16^\"l\""))
+              \K (indent "bd16^\"K\"")})
 
 (defn- prepare
   "Transforms the `input` string into a valid list of patterns."
@@ -32,7 +35,7 @@
   {:pre  [(valid-pattern? pattern)]
    :post [(string? %)]}
   (let [strokes (map #(strokes %) pattern)
-        header  (str "%-- " pattern)]
+        header  (str (indent "%-- ") pattern)]
     (->> (conj strokes header)
          (str/join "\n"))))
 
@@ -43,16 +46,25 @@
 
 (defn ls [] (prn patterns))
 
+(def file-top "\\version \"2.24.4\"
+
+\\score {
+  \\new DrumStaff {
+    \\new DrumVoice {
+      \\drummode {
+        \\repeat volta 4 {
+")
+
+(def file-bottom "
+        }
+      }
+    }
+  }
+}")
+
 (defn generate [& args]
-  (println (patterns-to-strokes (first args))))
+  (spit "bin/test.ly" (str file-top (patterns-to-strokes (first args)) file-bottom)))
 
 (comment
-  (valid-patterns? ["RllK" "RLK"])
-  (pattern-to-strokes "RllK")
-  (prepare "RllK, RLKK ")
-  (let [input "RllK"]
-    (->> input
-         (pattern-to-strokes)
-         (spit "test.ly")))
-  (let [args "RllK,RllK,RLKK,RLKK"]
-    (patterns-to-strokes args)))
+  (ls)
+  (generate "RllK,RllK,RLKK,RLKK"))
